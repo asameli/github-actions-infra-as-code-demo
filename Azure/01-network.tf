@@ -3,7 +3,7 @@
 # Fortinet
 # Infrastructure As Code Demo
 # GitHub Actions - Terraform Cloud
-# Demo run - v2
+# Demo run - v3
 #
 ##############################################################################################################
 #
