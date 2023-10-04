@@ -201,7 +201,7 @@ provider "fortiflexvm" {
 }
 
 resource "fortiflexvm_config" "fortiflex-vm"{
-  terraform import fortiflexvm_config.1
+  terraform import fortiflexvm_config.fortiflex-vm 1
 }
 
 resource "fortiflexvm_entitlements_vm" "fortiflex-vm"{ 
