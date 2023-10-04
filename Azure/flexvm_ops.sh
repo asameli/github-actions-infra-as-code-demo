@@ -25,6 +25,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
   echo "Exiting due to HTTP error" 1>&2; exit 1
 fi
 
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
 STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
 
   echo "Authentication Status: ${STATUS}" 1>&2
@@ -47,6 +48,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
   echo "Exiting due to HTTP error" 1>&2; exit 1
 fi
 
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
 STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
 
   echo "Configs List Status: ${STATUS}" 1>&2
@@ -71,6 +73,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
   echo "Exiting due to HTTP error" 1>&2; exit 1
 fi
 
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
 STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
 
   echo "VMs List Status: ${STATUS}" 1>&2
@@ -98,6 +101,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
   echo "Exiting due to HTTP error" 1>&2; exit 1
 fi
 
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
 STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
 
   echo "VMs Create Status: ${STATUS}" 1>&2
@@ -125,6 +129,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
   echo "Exiting due to HTTP error" 1>&2; exit 1
 fi
 
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
 STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
 
   echo "VMs List Status: ${STATUS}" 1>&2
@@ -152,6 +157,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
   echo "Exiting due to HTTP error" 1>&2; exit 1
 fi
 
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
 STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
 
   echo "VMs List Status: ${STATUS}" 1>&2
@@ -179,6 +185,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
   echo "Exiting due to HTTP error" 1>&2; exit 1
 fi
 
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
 STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
 
   echo "VMs List Status: ${STATUS}" 1>&2
