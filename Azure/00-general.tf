@@ -201,11 +201,11 @@ provider "fortiflexvm" {
 }
 
 resource "fortiflexvm_config" "fortiflex-vm"{
-  terraform import fortiflexvm_config.fortiflex-vm 1
+  #terraform import fortiflexvm_config.fortiflex-vm 1
 }
 
 resource "fortiflexvm_entitlements_vm" "fortiflex-vm"{ 
-  config_id = fortiflexvm_config.fortiflex-vm.1
+  config_id = fortiflexvm_config.fortiflex-vm.id
   description = "Terraform auto deployed"
 }
 
