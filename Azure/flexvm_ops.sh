@@ -18,7 +18,7 @@ eval "$(jq -r '@sh "API_USERNAME=\(.apiUsername) API_PASSWORD=\(.apiPassword) PR
 flexvm_authenticate () {
 
   RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"username": "'${API_USERNAME}'","password": "'${API_PASSWORD}'","client_id": "flexvm","grant_type": "password"}' -H 'Content-Type: application/json' ${FORTICARE_AUTH_URL})
-  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | cut -d " " -f2)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
 if [ "$HTTP_CODE" -ne 200 ]; then
   echo "HTTP Error Code: $HTTP_CODE" 1>&2
   echo "API Response: ${RESPONSE}" 1>&2
@@ -40,7 +40,7 @@ flexvm_configs_list () {
 
   AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
   RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"programSerialNumber": "'${PROGRAM_SERIAL}'"}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/configs/list)
-  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | cut -d " " -f2)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
 if [ "$HTTP_CODE" -ne 200 ]; then
   echo "HTTP Error Code: $HTTP_CODE" 1>&2
   echo "API Response: ${RESPONSE}" 1>&2
@@ -64,7 +64,7 @@ flexvm_vms_list () {
 
   AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
   RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"configId": "'${CONFIG_ID}'"}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/vms/list)
-  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | cut -d " " -f2)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
 if [ "$HTTP_CODE" -ne 200 ]; then
   echo "HTTP Error Code: $HTTP_CODE" 1>&2
   echo "API Response: ${RESPONSE}" 1>&2
@@ -91,7 +91,7 @@ flexvm_vms_create () {
 
   AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
   RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"configId": "'${CONFIG_ID}'", "count": "1", "description": "created by automation", "endDate": null}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/vms/create)
-  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | cut -d " " -f2)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
 if [ "$HTTP_CODE" -ne 200 ]; then
   echo "HTTP Error Code: $HTTP_CODE" 1>&2
   echo "API Response: ${RESPONSE}" 1>&2
@@ -118,7 +118,7 @@ flexvm_vms_stop () {
 
   AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
   RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"serialNumber": "'${VM_FOUND}'"}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/vms/stop)
-  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | cut -d " " -f2)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
 if [ "$HTTP_CODE" -ne 200 ]; then
   echo "HTTP Error Code: $HTTP_CODE" 1>&2
   echo "API Response: ${RESPONSE}" 1>&2
@@ -145,7 +145,7 @@ flexvm_vms_reactivate () {
 
   AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
   RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"serialNumber": "'${VM_FOUND}'"}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/vms/reactivate)
-  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | cut -d " " -f2)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
 if [ "$HTTP_CODE" -ne 200 ]; then
   echo "HTTP Error Code: $HTTP_CODE" 1>&2
   echo "API Response: ${RESPONSE}" 1>&2
@@ -172,7 +172,7 @@ flexvm_vms_token () {
 
   AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
   RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"serialNumber": "'${VM_FOUND}'"}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/vms/token)
-  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | cut -d " " -f2)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
 if [ "$HTTP_CODE" -ne 200 ]; then
   echo "HTTP Error Code: $HTTP_CODE" 1>&2
   echo "API Response: ${RESPONSE}" 1>&2
