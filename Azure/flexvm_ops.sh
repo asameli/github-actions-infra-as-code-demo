@@ -26,7 +26,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
 fi
 
 echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
-STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
 
   echo "Authentication Status: ${STATUS}" 1>&2
   if [ ${STATUS} == 'success' ];
@@ -49,7 +49,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
 fi
 
 echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
-STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
 
   echo "Configs List Status: ${STATUS}" 1>&2
   CONFIG_ID="NOT_FOUND"
@@ -74,7 +74,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
 fi
 
 echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
-STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
 
   echo "VMs List Status: ${STATUS}" 1>&2
 
@@ -102,7 +102,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
 fi
 
 echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
-STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
 
   echo "VMs Create Status: ${STATUS}" 1>&2
 
@@ -130,7 +130,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
 fi
 
 echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
-STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
 
   echo "VMs List Status: ${STATUS}" 1>&2
 
@@ -158,7 +158,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
 fi
 
 echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
-STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
 
   echo "VMs List Status: ${STATUS}" 1>&2
 
@@ -186,7 +186,7 @@ if [ "$HTTP_CODE" -ne 200 ]; then
 fi
 
 echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
-STATUS=$(echo ${RESPONSE} | jq -r '.["status"]')
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
 
   echo "VMs List Status: ${STATUS}" 1>&2
 
