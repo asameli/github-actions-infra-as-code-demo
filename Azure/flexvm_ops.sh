@@ -1,47 +1,247 @@
 #!/bin/bash
 
-# Authenticate and get token
-AUTH_RESPONSE=$(curl -s -X POST "https://api.fortinet.com/flex/api/v1/auth" -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" -d "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&grant_type=client_credentials&tenant_id=$TENANT_ID")
-AUTH_STATUS=$(echo $AUTH_RESPONSE | jq -r '.status')
-if [[ "$AUTH_STATUS" != "success" ]]; then
-  echo "Authentication failed"
-  exit 1
-fi
-ACCESS_TOKEN=$(echo $AUTH_RESPONSE | jq -r '.access_token')
+# John McDonough Fortinet
+# @movinalot
 
-# List configurations
-CONFIG_RESPONSE=$(curl -s -X GET "https://api.fortinet.com/flex/api/v1/tenants/$TENANT_ID/configs" -H "accept: application/json" -H "Authorization: Bearer $ACCESS_TOKEN")
-if ! CONFIG_STATUS=$(echo $CONFIG_RESPONSE | jq -r '.status' 2>/dev/null); then
-  echo "Failed to parse configuration status"
-  exit 1
-fi
-if [[ "$CONFIG_STATUS" != "0" ]]; then
-  echo "Failed to list configurations"
-  exit 1
-fi
-CONFIG_ID=$(echo $CONFIG_RESPONSE | jq -r '.configs[0].id')
+FORTICARE_AUTH_URL="https://customerapiauth.fortinet.com/api/v1/oauth/token/"
+FLEXVM_BASE_URL="https://support.fortinet.com/ES/api/flexvm/v1"
 
-# List VMs
-VM_RESPONSE=$(curl -s -X GET "https://api.fortinet.com/flex/api/v1/tenants/$TENANT_ID/vms?configId=$CONFIG_ID" -H "accept: application/json" -H "Authorization: Bearer $ACCESS_TOKEN")
-if ! VM_STATUS=$(echo $VM_RESPONSE | jq -r '.status' 2>/dev/null); then
-  echo "Failed to parse VM status"
-  exit 1
-fi
-if [[ "$VM_STATUS" != "0" ]]; then
-  echo "Failed to list VMs"
-  exit 1
-fi
-VM_TOKEN=$(echo $VM_RESPONSE | jq -r '.vms[0].token')
+eval "$(jq -r '@sh "API_USERNAME=\(.apiUsername) API_PASSWORD=\(.apiPassword) PROGRAM_SERIAL=\(.programSerial) CONFIG_NAME=\(.configName) VM_SERIAL=\(.vmSerial) VM_OP=\(.vmOp)"')"
 
-# Activate VM
-ACTIVATE_VM_RESPONSE=$(curl -s -X POST "https://api.fortinet.com/flex/api/v1/tenants/$TENANT_ID/vms/$VM_TOKEN/activate" -H "accept: application/json" -H "Authorization: Bearer $ACCESS_TOKEN")
-if ! ACTIVATE_VM_STATUS=$(echo $ACTIVATE_VM_RESPONSE | jq -r '.status' 2>/dev/null); then
-  echo "Failed to parse VM activation status"
-  exit 1
-fi
-if [[ "$ACTIVATE_VM_STATUS" != "0" ]]; then
-  echo "Failed to activate VM"
-  exit 1
+#API_USERNAME=${1}
+#API_PASSWORD=${2}
+#PROGRAM_SERIAL=${3} # FlexVM Program Serial number to use when listing/creating/updating a VM
+#CONFIG_NAME=${4}    # FlexVM Configuration to use when listing/creating/updating a VM
+#VM_SERIAL=${5}      # if not specified then create a new VM Token and generate a new Serial number
+#VM_OP=${6}          # VM OP choices are STOP, REACTIVATE (aka start), and TOKEN (generate a new token)
+
+flexvm_authenticate () {
+
+  RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"username": "'${API_USERNAME}'","password": "'${API_PASSWORD}'","client_id": "flexvm","grant_type": "password"}' -H 'Content-Type: application/json' ${FORTICARE_AUTH_URL})
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
+if [ "$HTTP_CODE" -ne 200 ]; then
+  echo "HTTP Error Code: $HTTP_CODE" 1>&2
+  echo "API Response: ${RESPONSE}" 1>&2
+  echo "Exiting due to HTTP error" 1>&2; exit 1
 fi
 
-echo "VM activated successfully"
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
+
+  echo "Authentication Status: ${STATUS}" 1>&2
+  if [ ${STATUS} == 'success' ];
+  then
+    ACCESS_TOKEN=$(echo ${RESPONSE} | jq -r '.["access_token"]')
+  else
+    echo 'Exiting due to error' 1>&2; exit 1
+  fi
+}
+
+flexvm_configs_list () {
+
+  AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
+  RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"programSerialNumber": "'${PROGRAM_SERIAL}'"}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/configs/list)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
+if [ "$HTTP_CODE" -ne 200 ]; then
+  echo "HTTP Error Code: $HTTP_CODE" 1>&2
+  echo "API Response: ${RESPONSE}" 1>&2
+  echo "Exiting due to HTTP error" 1>&2; exit 1
+fi
+
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
+
+  echo "Configs List Status: ${STATUS}" 1>&2
+  CONFIG_ID="NOT_FOUND"
+  if [ ${STATUS} -eq 0 ];
+  then
+    CONFIG_ID=$(echo ${RESPONSE} | jq -r --arg CONFIG_NAME ${CONFIG_NAME} '.configs[] | select(.name==$CONFIG_NAME) | .id')
+    echo ${CONFIG_ID} 1>&2
+  else
+    echo 'Exiting due to error' 1>&2; exit 1
+  fi
+}
+
+flexvm_vms_list () {
+
+  AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
+  RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"configId": "'${CONFIG_ID}'"}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/vms/list)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
+if [ "$HTTP_CODE" -ne 200 ]; then
+  echo "HTTP Error Code: $HTTP_CODE" 1>&2
+  echo "API Response: ${RESPONSE}" 1>&2
+  echo "Exiting due to HTTP error" 1>&2; exit 1
+fi
+
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
+
+  echo "VMs List Status: ${STATUS}" 1>&2
+
+  if [ ${STATUS} -eq 0 ];
+  then
+    VM_FOUND=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .serialNumber')
+    VM_STATUS=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .status')
+    VM_TOKEN=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .token')
+    VM_TOKEN_STATUS=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .tokenStatus')
+    echo ${VM_FOUND} ${VM_STATUS} ${VM_TOKEN} ${VM_TOKEN_STATUS} 1>&2
+  else
+    echo 'Exiting due to error' 1>&2; exit 1
+  fi
+}
+
+flexvm_vms_create () {
+
+  AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
+  RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"configId": "'${CONFIG_ID}'", "count": "1", "description": "created by automation", "endDate": null}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/vms/create)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
+if [ "$HTTP_CODE" -ne 200 ]; then
+  echo "HTTP Error Code: $HTTP_CODE" 1>&2
+  echo "API Response: ${RESPONSE}" 1>&2
+  echo "Exiting due to HTTP error" 1>&2; exit 1
+fi
+
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
+
+  echo "VMs Create Status: ${STATUS}" 1>&2
+
+  if [ ${STATUS} -eq 0 ];
+  then
+    VM_FOUND=$(echo ${RESPONSE} | jq -r '.vms[] | .serialNumber')
+    VM_STATUS=$(echo ${RESPONSE} | jq -r '.vms[] | .status')
+    VM_TOKEN=$(echo ${RESPONSE} | jq -r '.vms[] | .token')
+    VM_TOKEN_STATUS=$(echo ${RESPONSE} | jq -r '.vms[] | .tokenStatus')
+    echo ${VM_FOUND} ${VM_STATUS} ${VM_TOKEN} ${VM_TOKEN_STATUS} 1>&2
+  else
+    echo 'Exiting due to error' 1>&2; exit 1
+  fi
+}
+
+flexvm_vms_stop () {
+
+  AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
+  RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"serialNumber": "'${VM_FOUND}'"}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/vms/stop)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
+if [ "$HTTP_CODE" -ne 200 ]; then
+  echo "HTTP Error Code: $HTTP_CODE" 1>&2
+  echo "API Response: ${RESPONSE}" 1>&2
+  echo "Exiting due to HTTP error" 1>&2; exit 1
+fi
+
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
+
+  echo "VMs List Status: ${STATUS}" 1>&2
+
+  if [ ${STATUS} -eq 0 ];
+  then
+    VM_FOUND=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .serialNumber')
+    VM_STATUS=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .status')
+    VM_TOKEN=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .token')
+    VM_TOKEN_STATUS=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .tokenStatus')
+    echo ${VM_FOUND} ${VM_STATUS} ${VM_TOKEN} ${VM_TOKEN_STATUS} 1>&2
+  else
+    echo 'Exiting due to error' 1>&2; exit 1
+  fi
+}
+
+flexvm_vms_reactivate () {
+
+  AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
+  RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"serialNumber": "'${VM_FOUND}'"}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/vms/reactivate)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
+if [ "$HTTP_CODE" -ne 200 ]; then
+  echo "HTTP Error Code: $HTTP_CODE" 1>&2
+  echo "API Response: ${RESPONSE}" 1>&2
+  echo "Exiting due to HTTP error" 1>&2; exit 1
+fi
+
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
+
+  echo "VMs List Status: ${STATUS}" 1>&2
+
+  if [ ${STATUS} -eq 0 ];
+  then
+    VM_FOUND=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .serialNumber')
+    VM_STATUS=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .status')
+    VM_TOKEN=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .token')
+    VM_TOKEN_STATUS=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .tokenStatus')
+    echo ${VM_FOUND} ${VM_STATUS} ${VM_TOKEN} ${VM_TOKEN_STATUS} 1>&2
+  else
+    echo 'Exiting due to error' 1>&2; exit 1
+  fi
+}
+
+flexvm_vms_token () {
+
+  AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
+  RESPONSE=$(curl -w "\nHTTP_CODE: %{http_code}" -s -d '{"serialNumber": "'${VM_FOUND}'"}' -H 'Content-Type: application/json' -H "${AUTH_HEADER}" ${FLEXVM_BASE_URL}/vms/token)
+  HTTP_CODE=$(echo ${RESPONSE} | grep "UNIQUE_HTTP_CODE_PLACEHOLDER" | awk -F ':' '{print $2}' | tr -d '[:space:]')
+if [ "$HTTP_CODE" -ne 200 ]; then
+  echo "HTTP Error Code: $HTTP_CODE" 1>&2
+  echo "API Response: ${RESPONSE}" 1>&2
+  echo "Exiting due to HTTP error" 1>&2; exit 1
+fi
+
+echo "DEBUG RESPONSE: ${RESPONSE}" 1>&2
+STATUS=$(echo ${RESPONSE} | jq -r '.status')
+
+  echo "VMs List Status: ${STATUS}" 1>&2
+
+  if [ ${STATUS} -eq 0 ];
+  then
+    VM_FOUND=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .serialNumber')
+    VM_STATUS=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .status')
+    VM_TOKEN=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .token')
+    VM_TOKEN_STATUS=$(echo ${RESPONSE} | jq -r --arg VM_SERIAL ${VM_SERIAL} '.vms[] | select(.serialNumber==$VM_SERIAL) | .tokenStatus')
+    echo ${VM_FOUND} ${VM_STATUS} ${VM_TOKEN} ${VM_TOKEN_STATUS} 1>&2
+  else
+    echo 'Exiting due to error' 1>&2; exit 1
+  fi
+}
+
+flexvm_output () {
+  jq -n \
+    --arg vm_serial "$VM_FOUND" \
+    --arg vm_status "$VM_STATUS" \
+    --arg vm_token "$VM_TOKEN" \
+    --arg vm_token_status "$VM_TOKEN_STATUS" \
+    '{"vmSerial":$vm_serial,"vmStatus":$vm_status,"vmToken":$vm_token,"vmTokenStatus":$vm_token_status}'
+}
+
+flexvm_authenticate
+flexvm_configs_list
+
+if [ -z ${VM_SERIAL} ]
+then
+  flexvm_vms_create
+  echo 'Exiting due to error' 1>&2; exit 1
+else
+  flexvm_vms_list
+  if [ ! -z ${VM_OP} ]
+  then
+    if [ ${VM_OP} == 'STOP' ] && [ ${VM_STATUS} != 'STOPPED' ]
+    then
+      flexvm_vms_stop
+    fi
+
+    if [ ${VM_OP} == 'REACTIVATE' ] && [ ${VM_STATUS} != 'ACTIVE' ]
+    then
+      flexvm_vms_reactivate
+    fi
+
+    if [ ${VM_OP} == 'TOKEN' ]
+    then
+      if [ ${VM_STATUS} != 'ACTIVE' ]
+      then
+        flexvm_vms_reactivate
+      fi
+
+      flexvm_vms_token
+
+      flexvm_output
+    fi
+  fi
+fi

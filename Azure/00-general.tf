@@ -74,6 +74,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = ">=2.0.0"
     }
+    fortiflexvm = {
+      version = "2.0.0"
+      source  = "fortinetdev/fortiflexvm"
+    }
   }
 
   backend "remote" {
@@ -88,6 +92,8 @@ terraform {
 provider "azurerm" {
   features {}
 }
+
+
 
 ##############################################################################################################
 # Accept the Terms license for the FortiGate Marketplace image
@@ -188,7 +194,29 @@ resource "azurerm_resource_group" "resourcegroup" {
 ##############################################################################################################
 # Retrieve Flex VM token
 ##############################################################################################################
+provider "fortiflexvm" {
+    username = "var.FLEXVM_API_USERNAME"
+    password = "var.FLEXVM_API_PASSWORD"
+    import_options = ["program_serial_number=ELAVMR0000000287"]
+}
 
+resource "fortiflexvm_config" "fortiflex-vm"{
+  terraform import fortiflexvm_config.1
+}
+
+resource "fortiflexvm_entitlements_vm" "fortiflex-vm"{ 
+  config_id = fortiflexvm_config.fortiflex-vm.1
+  description = "Terraform auto deployed"
+}
+
+output "fortiflex-vm"{
+    value = fortiflexvm_entitlements_vm.fortiflex-vm
+}
+output "fortiflex-vm_token"{
+    value = fortiflexvm_entitlements_vm.fortiflex-vm.token
+}
+
+/*
 variable "FLEXVM_API_USERNAME" {
   description = "FlexVM API username"
 }
@@ -225,6 +253,6 @@ data "external" "flexvm" {
 output "flexvm_token" {
   value = data.external.flexvm.result.vmToken
 }
-
+*/
 ##############################################################################################################
 
