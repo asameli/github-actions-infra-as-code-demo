@@ -213,18 +213,21 @@ output "test" {
   value = data.fortiflexvm_configs_list.example
 }
 
+output "test2" {
+  value = data.fortiflexvm_configs_list.example.configs[0]
+}
+
 /*
 resource "fortiflexvm_config" "fortiflex-vm" {
   #terraform import fortiflexvm_config.fortiflex-vm 1
-  product_type          = data.fortiflexvm_configs_list.example[0].product_type
+  product_type          = data.fortiflexvm_configs_list.example.configs[0].product_type
   program_serial_number = "ELAVMR0000000287"
 }
-
-
+*/
 
 
 resource "fortiflexvm_entitlements_vm" "fortiflex-vm" {
-  config_id   = fortiflexvm_config.fortiflex-vm.id
+  config_id   = data.fortiflexvm_configs_list.example.configs[0].id
   description = "Terraform auto deployed"
 }
 
