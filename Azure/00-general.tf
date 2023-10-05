@@ -200,9 +200,9 @@ resource "azurerm_resource_group" "resourcegroup" {
 # Retrieve Flex VM token
 ##############################################################################################################
 provider "fortiflexvm" {
-    username = var.FLEXVM_API_USERNAME
-    password = var.FLEXVM_API_PASSWORD
-    import_options = ["program_serial_number=ELAVMR0000000287"]
+  username       = var.FLEXVM_API_USERNAME
+  password       = var.FLEXVM_API_PASSWORD
+  import_options = ["program_serial_number=ELAVMR0000000287"]
 }
 
 import {
@@ -210,20 +210,20 @@ import {
   id = 1
 }
 
-resource "fortiflexvm_config" "fortiflex-vm"{
+resource "fortiflexvm_config" "fortiflex-vm" {
   #terraform import fortiflexvm_config.fortiflex-vm 1
 }
 
-resource "fortiflexvm_entitlements_vm" "fortiflex-vm"{ 
-  config_id = fortiflexvm_config.fortiflex-vm.id
+resource "fortiflexvm_entitlements_vm" "fortiflex-vm" {
+  config_id   = fortiflexvm_config.fortiflex-vm.id
   description = "Terraform auto deployed"
 }
 
-output "fortiflex-vm"{
-    value = fortiflexvm_entitlements_vm.fortiflex-vm
+output "fortiflex-vm" {
+  value = fortiflexvm_entitlements_vm.fortiflex-vm
 }
-output "fortiflex-vm_token"{
-    value = fortiflexvm_entitlements_vm.fortiflex-vm.token
+output "fortiflex-vm_token" {
+  value = fortiflexvm_entitlements_vm.fortiflex-vm.token
 }
 
 /*
