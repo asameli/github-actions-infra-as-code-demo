@@ -211,7 +211,7 @@ data "fortiflexvm_configs_list" "example" {
 
 resource "fortiflexvm_config" "fortiflex-vm" {
   #terraform import fortiflexvm_config.fortiflex-vm 1
-  product_type          = data.fortiflexvm_configs_list.example.product_type
+  product_type          = data.fortiflexvm_configs_list.example[0].product_type
   program_serial_number = "ELAVMR0000000287"
 }
 
