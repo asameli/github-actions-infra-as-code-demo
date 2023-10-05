@@ -27,6 +27,11 @@ variable "USERNAME" {
 variable "PASSWORD" {
 }
 
+variable "FLEXVM_API_USERNAME" {
+}
+
+variable "FLEXVM_API_PASSWORD" {
+}
 ##############################################################################################################
 # FortiGate license type
 ##############################################################################################################
@@ -195,9 +200,14 @@ resource "azurerm_resource_group" "resourcegroup" {
 # Retrieve Flex VM token
 ##############################################################################################################
 provider "fortiflexvm" {
-    username = "var.FLEXVM_API_USERNAME"
-    password = "var.FLEXVM_API_PASSWORD"
+    username = var.FLEXVM_API_USERNAME
+    password = var.FLEXVM_API_PASSWORD
     import_options = ["program_serial_number=ELAVMR0000000287"]
+}
+
+import {
+  to = fortiflexvm_config.fortiflex-vm
+  id = 1
 }
 
 resource "fortiflexvm_config" "fortiflex-vm"{
