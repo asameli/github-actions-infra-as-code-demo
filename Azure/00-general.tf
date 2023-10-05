@@ -205,13 +205,18 @@ provider "fortiflexvm" {
   import_options = ["program_serial_number=ELAVMR0000000287"]
 }
 
-import {
-  to = fortiflexvm_config.fortiflex-vm
-  id = 1
+data "fortiflexvm_configs_list" "example" {
+    program_serial_number = "ELAVMR0000000287"
 }
 
 resource "fortiflexvm_config" "fortiflex-vm" {
   #terraform import fortiflexvm_config.fortiflex-vm 1
+  product_type = data.fortiflexvm_configs_list.example.product_type
+  program_serial_number = "ELAVMR0000000287"
+}
+
+output "test" {
+  value = data.fortiflexvm_configs_list.example
 }
 
 resource "fortiflexvm_entitlements_vm" "fortiflex-vm" {
