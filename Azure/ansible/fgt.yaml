@@ -24,7 +24,7 @@
       firewall_address:
         name: "Backend"
         type: "dynamic"
-        sdn: "AzureSDN"
+        sdn: "azure"
         sub_type: "sdn"
         sdn_addr_type: "private"
         filter: "Tag.type=websrv"
