@@ -170,5 +170,5 @@ jobs:
         working-directory: ${{ env.TFPath }}
 
       - name: Ansible config
-        run: ansible-playbook ansible/fgt.yaml -i ${{ env.INVENTORY }}
+        run: ansible-playbook ansible/fgt.yaml -i ${{ env.INVENTORY }} -vv
         working-directory: ${{ env.TFPath }}
