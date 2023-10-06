@@ -24,10 +24,9 @@
       firewall_address:
         name: "Backend"
         type: "dynamic"
-        sdn: "azure"
+        sdn: "AzureSDN"
         sub_type: "sdn"
         sdn_addr_type: "private"
-        sdn_tag: "AzureSDN"
         filter: "Tag.type=websrv"
   # - name: Configure dynamic Azure SQL address object
   #   fortios_firewall_address:
