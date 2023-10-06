@@ -17,77 +17,77 @@
         name: "Transit"
         subnet: "172.27.40.64/26"
         type: "ipmask"
-  # - name: Configure dynamic backend address object
-  #   fortios_firewall_address:
-  #     vdom:  "{{ vdom }}"
-  #     state: "present"
-  #     firewall_address:
-  #       name: "Backend"
-  #       type: "dynamic"
-  #       sdn: "azure"
-  #       sub_type: "sdn"
-  #       sdn_addr_type: "private"
-  #       filter: "Tag.type=websrv"
-  # - name: Configure dynamic Azure SQL address object
-  #   fortios_firewall_address:
-  #     vdom:  "{{ vdom }}"
-  #     state: "present"
-  #     firewall_address:
-  #       name: "AzureSQL"
-  #       type: "dynamic"
-  #       sdn: "azure"
-  #       sub_type: "sdn"
-  #       sdn_addr_type: "private"
-  #       filter: "Region=westeurope | ServiceTag=Sql"
-  # - name: Configure Azure SQL Egress firewall policy
-  #   fortios_firewall_policy:
-  #     vdom:  "{{ vdom }}"
-  #     state: "present"
-  #     firewall_policy:
-  #       policyid: 10
-  #       name: "EgressAzureSQL"
-  #       srcintf:
-  #         - name: "port2"
-  #       dstintf:
-  #         - name: "port1"
-  #       srcaddr:
-  #         - name: "Backend"
-  #       dstaddr:
-  #         - name: "AzureSQL"
-  #       action: accept
-  #       schedule: "always"
-  #       service:
-  #         - name: "ALL"
-  #       nat: enable
-  #       logtraffic: "all"
-  #       ips_sensor: "protect_client"
-  # - name: Configure Egress firewall policy
-  #   fortios_firewall_policy:
-  #     vdom:  "{{ vdom }}"
-  #     state: "present"
-  #     firewall_policy:
-  #       policyid: 11
-  #       name: "EgressAll"
-  #       srcintf:
-  #         - name: "port2"
-  #       dstintf:
-  #         - name: "port1"
-  #       srcaddr:
-  #         - name: "Backend"
-  #       dstaddr:
-  #         - name: "all"
-  #       action: accept
-  #       schedule: "always"
-  #       service:
-  #         - name: "ALL"
-  #       nat: enable
-  #       utm_status: "enable"
-  #       av_profile: "default"
-  #       logtraffic: "all"
-  #       ssl_ssh_profile: "deep-inspection"
-  #       dnsfilter_profile: "default"
-  #       application_list: "block-high-risk"
-  #       ips_sensor: "protect_client"
+  - name: Configure dynamic backend address object
+    fortios_firewall_address:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_address:
+        name: "Backend"
+        type: "dynamic"
+        sdn: "azure"
+        sub_type: "sdn"
+        sdn_addr_type: "private"
+        filter: "Tag.type=websrv"
+  - name: Configure dynamic Azure SQL address object
+    fortios_firewall_address:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_address:
+        name: "AzureSQL"
+        type: "dynamic"
+        sdn: "azure"
+        sub_type: "sdn"
+        sdn_addr_type: "private"
+        filter: "Region=westeurope | ServiceTag=Sql"
+  - name: Configure Azure SQL Egress firewall policy
+    fortios_firewall_policy:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_policy:
+        policyid: 10
+        name: "EgressAzureSQL"
+        srcintf:
+          - name: "port2"
+        dstintf:
+          - name: "port1"
+        srcaddr:
+          - name: "Backend"
+        dstaddr:
+          - name: "AzureSQL"
+        action: accept
+        schedule: "always"
+        service:
+          - name: "ALL"
+        nat: enable
+        logtraffic: "all"
+        ips_sensor: "protect_client"
+  - name: Configure Egress firewall policy
+    fortios_firewall_policy:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_policy:
+        policyid: 11
+        name: "EgressAll"
+        srcintf:
+          - name: "port2"
+        dstintf:
+          - name: "port1"
+        srcaddr:
+          - name: "Backend"
+        dstaddr:
+          - name: "all"
+        action: accept
+        schedule: "always"
+        service:
+          - name: "ALL"
+        nat: enable
+        utm_status: "enable"
+        av_profile: "default"
+        logtraffic: "all"
+        ssl_ssh_profile: "deep-inspection"
+        dnsfilter_profile: "default"
+        application_list: "block-high-risk"
+        ips_sensor: "protect_client"
 # ##############################################################
 #  - name: Configure FortiGate Stitch Trigger
 #    fortios_json_generic:
