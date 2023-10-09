@@ -17,17 +17,17 @@
         name: "Transit"
         subnet: "172.27.40.64/26"
         type: "ipmask"
-  - name: Configure dynamic backend address object
-    fortios_firewall_address:
-      vdom:  "{{ vdom }}"
-      state: "present"
-      firewall_address:
-        name: "Backend"
-        type: "dynamic"
-        sdn: "azure"
-        sub_type: "sdn"
-        sdn_addr_type: "private"
-        filter: "Tag.type=websrv"
+  # - name: Configure dynamic backend address object
+  #   fortios_firewall_address:
+  #     vdom:  "{{ vdom }}"
+  #     state: "present"
+  #     firewall_address:
+  #       name: "Backend"
+  #       type: "dynamic"
+  #       sdn: "azure"
+  #       sub_type: "sdn"
+  #       sdn_addr_type: "private"
+  #       filter: "Tag.type=websrv"
   # - name: Configure dynamic Azure SQL address object
   #   fortios_firewall_address:
   #     vdom:  "{{ vdom }}"
