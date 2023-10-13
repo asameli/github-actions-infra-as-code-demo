@@ -24,7 +24,7 @@
       firewall_address:
         name: "Backend"
         type: "dynamic"
-        sdn: "AzureSDN"
+        sdn: "azure"
         sdn_addr_type: "private"
         filter: "Tag.type=websrv"
   # - name: Configure dynamic Azure SQL address object
